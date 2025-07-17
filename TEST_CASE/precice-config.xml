@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<precice-configuration>
+  <log>
+    <sink filter="%Severity% > debug" format="---[precice] %ColorizedSeverity% %Message%" enabled="true" />
+  </log>
+
+  <!-- =========================================================== -->
+  <!-- ======================= DATA FIELDS ======================= -->
+  <!-- =========================================================== -->
+  <data:scalar name="Temperature" />
+  <data:scalar name="Heat-Flux" />
+
+  <!-- =========================================================== -->
+  <!-- ========================== MESHES ========================= -->
+  <!-- =========================================================== -->
+  <mesh name="Fluid-Mesh" dimensions="3">
+    <use-data name="Temperature" />
+    <use-data name="Heat-Flux" />
+  </mesh>
+
+  <mesh name="Solid-Mesh" dimensions="3">
+    <use-data name="Temperature" />
+    <use-data name="Heat-Flux" />
+  </mesh>
+
+  <!-- =========================================================== -->
+  <!-- ======================== PARTICIPANTS ===================== -->
+  <!-- =========================================================== -->
+  <participant name="Fluid">
+    <provide-mesh name="Fluid-Mesh" />
+    <receive-mesh name="Solid-Mesh" from="Solid" />
+    <write-data name="Heat-Flux" mesh="Fluid-Mesh" />
+    <read-data name="Temperature" mesh="Fluid-Mesh" />
+    <mapping:nearest-neighbor 
+      direction="read" 
+      from="Solid-Mesh" 
+      to="Fluid-Mesh" 
+      constraint="conservative" />
+  </participant>
+
+  <participant name="Solid">
+    <provide-mesh name="Solid-Mesh" />
+    <receive-mesh name="Fluid-Mesh" from="Fluid" />
+    <read-data name="Heat-Flux" mesh="Solid-Mesh" />
+    <write-data name="Temperature" mesh="Solid-Mesh" />
+    <mapping:nearest-neighbor 
+      direction="read" 
+      from="Fluid-Mesh" 
+      to="Solid-Mesh" 
+      constraint="conservative" />
+  </participant>
+
+  <!-- =========================================================== -->
+  <!-- ================== COMMUNICATION & MAPPING ================== -->
+  <!-- =========================================================== -->
+  <m2n:sockets acceptor="Fluid" connector="Solid" exchange-directory="../" />
+
+  <!-- =========================================================== -->
+  <!-- ======================== COUPLING ========================= -->
+  <!-- =========================================================== -->
+  <coupling-scheme:parallel-implicit>
+    <participants first="Fluid" second="Solid" />
+    <max-time-windows value="10" />
+    <time-window-size value="0.1" />
+    <max-iterations value="10" />
+
+    <exchange data="Heat-Flux" mesh="Fluid-Mesh" from="Fluid" to="Solid" />
+    <exchange data="Temperature" mesh="Solid-Mesh" from="Solid" to="Fluid" />
+  </coupling-scheme:parallel-implicit>
+
+</precice-configuration>

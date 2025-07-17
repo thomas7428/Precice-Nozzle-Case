@@ -1,0 +1,21 @@
+{
+  "simulation": {
+    "results_folder_prefix": "simulation_run"
+  },
+  "solid": {
+    "thermal_conductivity": 20.0,
+    "hot_gas_flux": 5000000.0,
+    "convection_coeff": 10.0,
+    "ambient_temp": 293.15
+  },
+  "fluid": {
+    "density": 1.225,
+    "dynamic_viscosity": 1.81e-5,
+    "thermal_conductivity": 20.0,
+    "specific_heat": 1005,
+    "inlet_temp": 350.0,
+    "inlet_velocity_x": -100.0,
+    "inlet_velocity_y": 0.0,
+    "inlet_velocity_z": 0.0
+  }
+}
