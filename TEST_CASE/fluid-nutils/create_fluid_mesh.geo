@@ -5,7 +5,9 @@
 Merge "Cooling_Channels_mesh.brep";
 
 // Define a mesh size parameter
-lc = 0.005; // Adjusted for finer mesh, change as needed
+lc = 0.002; // Adjusted for finer mesh, change as needed
+lm = 0.0001; // Minimum mesh size for finer details
+Mesh.CharacteristicLengthMin = lm;
 Mesh.CharacteristicLengthMax = lc;
 
 // --- Name the Volume ---
@@ -17,7 +19,7 @@ Physical Volume("U_Channel_Fluid_Volume") = {1};
 
 // Coupling Surfaces
 Physical Surface("U_Channel_Fluid_Channel_Top") = {1};    // This seems to be tag 2 in your file
-Physical Surface("U_Channel_Fluid_Channel_Right") = {2};  // This seems to be tag 3 in your file
+Physical Surface("U_Channel_Fluid_Channel_Right") = {4};  // This seems to be tag 3 in your file
 Physical Surface("U_Channel_Fluid_Channel_Bottom") = {6}; // This seems to be tag 4 in your file
 
 // Other Boundaries (THESE ARE MISSING)
@@ -28,4 +30,5 @@ Physical Surface("U_Channel_Fluid_Outlet") = {3}; // Example: replace 6 with the
 Mesh 3;
 
 // Save the final mesh file.
+Mesh.MshFileVersion = 4.1;
 Save "U_Channel_Fluid_mesh.msh";

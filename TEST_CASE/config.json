@@ -5,8 +5,9 @@
   "solid": {
     "thermal_conductivity": 20.0,
     "hot_gas_flux": 5000000.0,
-    "convection_coeff": 10.0,
-    "ambient_temp": 293.15
+    "convection_coeff": 25.0,
+    "ambient_temp": 293.15,
+    "export_vtk": true
   },
   "fluid": {
     "density": 1.225,
@@ -14,8 +15,9 @@
     "thermal_conductivity": 20.0,
     "specific_heat": 1005,
     "inlet_temp": 350.0,
-    "inlet_velocity_x": -100.0,
+    "inlet_velocity_x": -100000.0,
     "inlet_velocity_y": 0.0,
-    "inlet_velocity_z": 0.0
+    "inlet_velocity_z": 0.0,
+    "export_vtk": true
   }
 }

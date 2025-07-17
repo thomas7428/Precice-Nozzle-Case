@@ -6,6 +6,8 @@ Merge "Solid_mesh.brep";
 
 // Define a mesh size parameter
 lc = 0.005; // Adjusted for finer mesh, change as needed
+lm = 0.0001; // Minimum mesh size for finer details
+Mesh.CharacteristicLengthMin = lm;
 Mesh.CharacteristicLengthMax = lc;
 
 // --- Define Physical Groups ---
@@ -33,5 +35,5 @@ Physical Surface("U_Channel_Solid_Left_Bottom", 12) = {6}; // Left face under th
 Mesh 3;
 
 // Save the mesh in the correct format (Version 4.1)
-Mesh.MshFileVersion = 4.1;
+// Mesh.MshFileVersion = 4.1;
 Save "U_Channel_Solid_mesh.msh";

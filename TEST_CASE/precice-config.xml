@@ -31,6 +31,7 @@
     <receive-mesh name="Solid-Mesh" from="Solid" />
     <write-data name="Heat-Flux" mesh="Fluid-Mesh" />
     <read-data name="Temperature" mesh="Fluid-Mesh" />
+    <export:vtk/>
     <mapping:nearest-neighbor 
       direction="read" 
       from="Solid-Mesh" 
@@ -43,6 +44,7 @@
     <receive-mesh name="Fluid-Mesh" from="Fluid" />
     <read-data name="Heat-Flux" mesh="Solid-Mesh" />
     <write-data name="Temperature" mesh="Solid-Mesh" />
+    <export:vtu/>
     <mapping:nearest-neighbor 
       direction="read" 
       from="Fluid-Mesh" 
@@ -53,7 +55,7 @@
   <!-- =========================================================== -->
   <!-- ================== COMMUNICATION & MAPPING ================== -->
   <!-- =========================================================== -->
-  <m2n:sockets acceptor="Fluid" connector="Solid" exchange-directory="../" />
+  <m2n:sockets acceptor="Solid" connector="Fluid" exchange-directory="../" />
 
   <!-- =========================================================== -->
   <!-- ======================== COUPLING ========================= -->
@@ -62,10 +64,17 @@
     <participants first="Fluid" second="Solid" />
     <max-time-windows value="10" />
     <time-window-size value="0.1" />
-    <max-iterations value="10" />
-
+    <max-iterations value="30" />
     <exchange data="Heat-Flux" mesh="Fluid-Mesh" from="Fluid" to="Solid" />
     <exchange data="Temperature" mesh="Solid-Mesh" from="Solid" to="Fluid" />
+    <relative-convergence-measure 
+      data="Temperature"
+      mesh="Solid-Mesh"
+      limit="1e-4" />
+    <relative-convergence-measure 
+      data="Heat-Flux"
+      mesh="Fluid-Mesh"
+      limit="1e-4" />
   </coupling-scheme:parallel-implicit>
 
 </precice-configuration>
