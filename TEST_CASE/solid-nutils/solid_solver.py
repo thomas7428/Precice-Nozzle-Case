@@ -90,25 +90,56 @@ class SolidSolver:
             temps = self.domain.boundary[name].project(self.ns.t, onto=self.bases[name], geometry=self.ns.x, ischeme='gauss4', arguments=dict(lhs=lhs))
             all_temps.append(temps)
         return np.concatenate(all_temps)
-
-    def export_vtk(self, lhs, results_folder, time_step_number):
-        """Exports the current solution to a VTK file."""
-        print(f"--- DEBUG: Exporting solid solution to VTK for step {time_step_number} ---")
-        vtk_sample = self.domain.sample('vtk', degree=2)
-        points = vtk_sample.eval(self.ns.x)
-        print(f"--- DEBUG: points.shape = {points.shape}")
-        print(f"--- DEBUG: lhs type: {type(lhs)}, shape: {getattr(lhs, 'shape', None)}")
-        print(f"--- DEBUG: Number of basis functions: {len(self.ns.basis)}")
-        # Print a small sample of lhs
-        print(f"--- DEBUG: lhs sample: {lhs[:10] if hasattr(lhs, '__getitem__') else lhs}")
+            
+    def _get_complete_eval_args(self, lhs):
+        """
+        Helper function to build a complete arguments dictionary for evaluation,
+        mirroring the fluid solver's approach.
+        """
+        # CRITICAL: Ensure lhs is a numerical array of floats, not symbolic.
         try:
-            temperature_values = vtk_sample.eval(self.ns.t, arguments={'lhs': lhs})
-            print(f"--- DEBUG: temperature_values.shape = {temperature_values.shape}")
-            heat_flux_vector = vtk_sample.eval('-k d_i(t)' @ self.ns, arguments={'lhs': lhs})
-            print(f"--- DEBUG: heat_flux_vector.shape = {heat_flux_vector.shape}")
+            numerical_lhs = np.asarray(lhs, dtype=float)
+        except (TypeError, ValueError) as e:
+            print(f"--- ERROR: Could not convert `lhs` to a numerical array: {e}. Using zeros. ---")
+            numerical_lhs = np.zeros(len(self.ns.basis))
+
+        eval_args = {'lhs': numerical_lhs}
+
+        # Add placeholder zero-arrays for the flux arguments required by the residual.
+        # This is necessary for Nutils to evaluate the temperature field correctly.
+        for name in self.coupling_boundaries:
+            # Assumes argument names are 'pqTop', 'pqRight', 'pqBottom'
+            arg_name = f'pq{name.split("_")[-1]}'
+            eval_args[arg_name] = np.zeros(len(self.bases[name]))
+            
+        return eval_args
+            
+    def export_vtk(self, lhs, results_folder, time_step_number):
+        """
+        Exports the current solution to a VTK file, using the same robust
+        pattern as the fluid solver.
+        """
+        print(f"--- DEBUG: Exporting solid solution to VTK for step {time_step_number} ---")
+        
+        vtk_sample = self.domain.sample('vtk', degree=2)
+        eval_args = self._get_complete_eval_args(lhs)
+
+        points = vtk_sample.eval(self.ns.x)
+        
+        # Define the heat flux vector symbolically first
+        heat_flux_vector = -self.ns.k * self.ns.d(self.ns.t)
+
+        try:
+            # Use the prepared arguments for all evaluations
+            temperature = vtk_sample.eval(self.ns.t, arguments=eval_args)
+            heat_flux = vtk_sample.eval(heat_flux_vector, arguments=eval_args)
+
             full_path = f"{results_folder}/solid_solution_{time_step_number}"
-            export.vtk(full_path, vtk_sample.tri, points, T=temperature_values, H=heat_flux_vector)
+            export.vtk(full_path, vtk_sample.tri, points, T=temperature, H=heat_flux)
+            print(f"--- SUCCESS: Exported VTK file to {full_path}.vtk ---")
+
         except Exception as e:
-            print(f"Failed to export VTK: {e}")
+            print(f"--- ERROR: Failed to evaluate fields or write VTK file: {e} ---")
             import traceback
             traceback.print_exc()
+
